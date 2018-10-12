@@ -297,7 +297,7 @@ Internet-Draft         SHAKE identifiers in X.509         September 2018
    Finally, the trailerField MUST be 1, which represents the trailer
    field with hexadecimal value 0xBC [RFC8017].
 
-5.1.2.  ECDSA Signatures
+5.1.2.  Deterministic ECDSA Signatures
 
    The Elliptic Curve Digital Signature Algorithm (ECDSA) is defined in
    [X9.62].  When the id-ecdsa-with-SHAKE128 or id-ecdsa-with-SHAKE256
@@ -315,14 +315,21 @@ Internet-Draft         SHAKE identifiers in X.509         September 2018
    Conforming CA implementations that generate ECDSA with SHAKE
    signatures in certificates or CRLs MUST generate such signatures with
    a deterministicly generated, non-random k in accordance with all the
-   requirements specified in [RFC6979].  They MAY also generate such
-   signatures in accordance with all the recommendations in [X9.62] or
+   requirements specified in [RFC6979]. They MAY also generate such
+   signatures in accordance with all other recommendations in [X9.62] or
    [SEC1] if they have a stated policy that requires conformance to
-   these standards.  These standards may have not specified SHAKE128 and
-   SHAKE256 as hash algorithm options.  However, SHAKE128 and SHAKE256
+   these standards. These standards may have not specified SHAKE128 and
+   SHAKE256 as hash algorithm options. However, SHAKE128 and SHAKE256
    with output length being 32 and 64 octets respectively are
    subtitutions for 256 and 512-bit output hash algorithms such as
    SHA256 and SHA512 used in the standards.
+   
+   In Section 3.2 "Generation of k" of RFC 6979, HMAC is used to derive the deterministic
+   k. Conforming implementations that generate deterministic ECDSA with SHAKE signatures
+   in CMS MUST use Kmac wit SHAKE128 or Kmac with SHAKE256 as specfied in [SP800-185] 
+   when SHAKE128 or SHAKE256 is used as the message hashing algorithm, respectively. 
+   In this situation, KMAC wit SHAKE128 and KMAC with SHAKE256 have 256-bit and 512-bit
+   outputs respectively, and the optional customization bit string S is an empty string. 
 
 5.2.  Public Keys
 
@@ -511,7 +518,11 @@ Internet-Draft         SHAKE identifiers in X.509         September 2018
               Functions FIPS PUB 202", August 2015,
               <https://www.nist.gov/publications/sha-3-standard-
               permutation-based-hash-and-extendable-output-functions>.
-
+              
+  [SP800-185] Kelsey, J., Chang S., and Perlner R., "NIST Special Publication 800
+              -185: SHA-3 Derived Functions: cSHAKE, KMAC, TupleHash and 
+              ParallelHash", NIST, December 2016. 
+              
 9.2.  Informative References
 
    [RFC3279]  Bassham, L., Polk, W., and R. Housley, "Algorithms and
