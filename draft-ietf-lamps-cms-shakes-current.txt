@@ -131,20 +131,21 @@ Internet-Draft                SHAKEs in CMS               September 2018
    Algorithm (ECDSA) [X9.62] with the CMS signed-data content type.
 
    The SHA-3 family of one-way hash functions is specified in [SHA3].
-   In the SHA-3 family, one extendable-output function (SHAKE) with two
-   variants, SHAKE128 and SHAKE256, is defined.  Four other hash
+   In the SHA-3 family, two extendable-output functions (SHAKEs): 
+   SHAKE128 and SHAKE256, are defined. Four other hash
    function instances, SHA3-224, SHA3-256, SHA3-384, and SHA3-512 are
-   also defined but are out of scope for this document.  SHAKE is a
-   variable length hash function.  The output length, in bits, of the
-   SHAKE instances is defined by the d parameter.  The corresponding
+   also defined but are out of scope for this document. A SHAKE is a
+   variable length hash function. The output length, in bits, of a
+   SHAKE is defined by the d parameter. The corresponding
    collision and second preimage resistance strengths for SHAKE128 are
-   min(d/2,128) and min(d,128) bits respectively.  And, the
+   min(d/2,128) and min(d,128) bits respectively. And, the
    corresponding collision and second preimage resistance strengths for
    SHAKE256 are min(d/2,256) and min(d,256) bits respectively.
 
-   SHAKE can be used in CMS as the message digest function (to hash the
-   message to be signed) in RSASSA-PSS and ECDSA, message authentication
-   code and as the hash in the mask generating function in RSASSA-PSS.
+   A SHAKE can be used in CMS as the message digest function (to hash the
+   message to be signed) in RSASSA-PSS and deterministic ECDSA, message 
+   authentication code and as the mask generating function in RSASSA-PSS.
+   
    In Section 3 of this document we define six new OIDs using SHAKE128
    and SHAKE256 in CMS.
 
@@ -191,7 +192,7 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
      [ EDNOTE: "TBD" will be specified by NIST later. ]
 
-   The new algorithm identifiers of ECDSA signatures using SHAKEs are
+   The new algorithm identifiers of deterministic ECDSA signatures using SHAKEs are
    below.
 
      id-ecdsa-with-SHAKE128 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2)
@@ -204,10 +205,10 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
      [ EDNOTE: "TBD" will be specified by NIST. ]
 
-   The same RSASSA-PSS and ECDSA with SHAKEs algorithm identifiers are
+   The same RSASSA-PSS and deterministic ECDSA with SHAKEs algorithm identifiers are
    used for identifying public keys and signatures.
 
-   The parameters for the four RSASSA-PSS and ECDSA identifiers MUST be
+   The parameters for the four RSASSA-PSS and deterministic ECDSA identifiers MUST be
    absent.  That is, each identifier SHALL be a SEQUENCE of one
    component, the OID.
 
@@ -242,7 +243,7 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
    Section 4.1, Section 4.2.1, Section 4.2.2 and Section 4.4 specify the
    required output length for each use of SHAKE128 or SHAKE256 in
-   message digests, RSASSA-PSS, ECDSA and KMAC.
+   message digests, RSASSA-PSS, deterministic ECDSA and KMAC.
 
 4.  Use in CMS
 
@@ -264,10 +265,10 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
    In CMS, signature algorithm identifiers are located in the SignerInfo
    signatureAlgorithm field of SignedData content type and
-   countersignature attribute.  Signature values are located in the
+   countersignature attribute. Signature values are located in the
    SignerInfo signature field of SignedData and countersignature.
 
-   Conforming implementations that process RSASSA-PSS and ECDSA with
+   Conforming implementations that process RSASSA-PSS and deterministic ECDSA with
    SHAKE signatures when processing CMS data MUST recognize the
    corresponding OIDs specified in Section 3.
 
@@ -286,21 +287,22 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
    The RSASSA-PSS algorithm is defined in [RFC8017].  When id-RSASSA-
    PSS-SHAKE128 or id-RSASSA-PSS-SHAKE256 specified in Section 3 is
-   used, the encoding MUST omit the parameters field.  That is, the
+   used, the encoding MUST omit the parameters field. That is, the
    AlgorithmIdentifier SHALL be a SEQUENCE of one component, id-RSASSA-
    PSS-SHAKE128 or id-RSASSA-PSS-SHAKE256.
 
-   The hash algorithm to hash a message being signed and the hash
-   algorithm in the maskGenAlgorithm used in RSASSA-PSS MUST be the
-   same, SHAKE128 or SHAKE256 respectively.  The output-length of the
+   The hash algorithm to hash a message being signed and 
+   The hash algorithm being used as the mask generation function (MGF)
+   (defined as "MGF(H, emLen - hLen - 1)" in RFC 8017) in RSASSA-PSS MUST be the
+   same, either SHAKE128 or SHAKE256 respectively. The output-length of the
    SHAKE which hashes the message SHALL be 32 or 64 bytes respectively.
 
    In RSASSA-PSS, a mask generation function takes an octet string of
    variable length and a desired output length as input, and outputs an
-   octet string of the desired length.  In RSASSA-PSS with SHAKES, the
-   SHAKEs MUST be used natively as the MGF1 function, instead of the
+   octet string of the desired length. In RSASSA-PSS with SHAKES, the
+   SHAKEs MUST be used natively as the MGF, instead of the
    MGF1 algorithm that uses the hash function in multiple iterations as
-   specified in Section B.2.1 of [RFC8017].  In other words, the MGF1 is
+   specified in Section B.2.1 of [RFC8017]. In other words, the MGF is
    defined as
 
        SHAKE128(mgfSeed, maskLen)
@@ -311,10 +313,10 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
    respectively for id-RSASSA-PSS-SHAKE128 and id-RSASSA-PSS-SHAKE256.
    The mgfSeed is the seed from which mask is generated, an octet
-   string.  The maskLen for SHAKE128 or SHAKE256 being used as the MGF1
+   string.  The maskLen for SHAKE128 or SHAKE256 being used as the MGF
    is (n - 264)/8 or (n - 520)/8 bytes respectively, where n is the RSA
    modulus in bits.  For example, when RSA modulus n is 2048, the output
-   length of SHAKE128 or SHAKE256 in the MGF1 will be 223 or 191 when
+   length of SHAKE128 or SHAKE256 as the MGF will be 223 or 191 bytes when
    id-RSASSA-PSS-SHAKE128 or id-RSASSA-PSS-SHAKE256 is used
    respectively.
 
@@ -322,10 +324,10 @@ Internet-Draft                SHAKEs in CMS               September 2018
    Finally, the trailerField MUST be 1, which represents the trailer
    field with hexadecimal value 0xBC [RFC8017].
 
-4.2.2.  ECDSA Signatures
+4.2.2.  Deterministic ECDSA Signatures
 
-   The Elliptic Curve Digital Signature Algorithm (ECDSA) is defined in
-   [X9.62].  When the id-ecdsa-with-SHAKE128 or id-ecdsa-with-SHAKE256
+   The Elliptic Curve Digital Signature Algorithm (ECDSA) is 
+   defined in [X9.62].  When the id-ecdsa-with-SHAKE128 or id-ecdsa-with-SHAKE256
    (specified in Section 3) algorithm identifier appears, the respective
    SHAKE function is used as the hash.  The encoding MUST omit the
    parameters field.  That is, the AlgorithmIdentifier SHALL be a
@@ -344,16 +346,23 @@ Internet-Draft                SHAKEs in CMS               September 2018
    Conforming implementations that generate ECDSA with SHAKE signatures
    in CMS MUST generate such signatures with a deterministicly
    generated, non-random k in accordance with all the requirements
-   specified in [RFC6979].  They MAY also generate such signatures in
-   accordance with all the recommendations in [X9.62] or [SEC1] if they
+   specified in [RFC6979]. They MAY also generate such signatures in
+   accordance with all other recommendations in [X9.62] or [SEC1] if they
    have a stated policy that requires conformance to these standards.
 
    For simplicity and compliance with the ECDSA standard specification,
    the output size of the hash function must be explicitly determined.
    The output size, d, for SHAKE128 or SHAKE256 used in ECDSA MUST be
-   256 or 512 bits respectively.  The ECDSA message hash function is
+   256 or 512 bits respectively. The ECDSA message hash function is
    SHAKE128 or SHAKE256 respectively.
-
+   
+   In Section 3.2 "Generation of k" of RFC 6979, HMAC is used to derive the deterministic
+   k. Conforming implementations that generate deterministic ECDSA with SHAKE signatures
+   in CMS MUST use KmacwitSHAKE128 or KmacwithSHAKE256, see Section 4.4 for their
+   specfications in this standard, when SHAKE128 or SHAKE256 is used as the message
+   hashing algorithm respectively. In this situation, KMACwitSHAKE128 and KMACwithSHAKE256
+   have 256-bit and 512-bit outputs respectively. 
+   
 4.3.  Public Keys
 
    In CMS, the signer's public key algorithm identifiers are located in
@@ -361,7 +370,7 @@ Internet-Draft                SHAKEs in CMS               September 2018
 
    Conforming implementations MUST specify the algorithms explicitly by
    using the OIDs specified in Section 3 when encoding RSASSA-PSS and
-   ECDSA with SHAKE public keys in CMS messages.  The conventions for
+   ECDSA with SHAKE public keys in CMS messages. The conventions for
    RSASSA-PSS and ECDSA public keys algorithm identifiers are as
    specified in [RFC3279], [RFC4055] and [RFC5480] , but we include them
    below for convenience.
@@ -536,6 +545,11 @@ Internet-Draft                SHAKEs in CMS               September 2018
    [RFC5652]  Housley, R., "Cryptographic Message Syntax (CMS)", STD 70,
               RFC 5652, DOI 10.17487/RFC5652, September 2009,
               <https://www.rfc-editor.org/info/rfc5652>.
+              
+   [RFC6979]  Pornin, T., "Deterministic Usage of the Digital Signature
+              Algorithm (DSA) and Elliptic Curve Digital Signature
+              Algorithm (ECDSA)", RFC 6979, DOI 10.17487/RFC6979, August
+              2013, <https://www.rfc-editor.org/info/rfc6979>.          
 
    [RFC8017]  Moriarty, K., Ed., Kaliski, B., Jonsson, J., and A. Rusch,
               "PKCS #1: RSA Cryptography Specifications Version 2.2",
@@ -579,11 +593,6 @@ Internet-Draft                SHAKEs in CMS               September 2018
               "Randomness Requirements for Security", BCP 106, RFC 4086,
               DOI 10.17487/RFC4086, June 2005,
               <https://www.rfc-editor.org/info/rfc4086>.
-
-   [RFC6979]  Pornin, T., "Deterministic Usage of the Digital Signature
-              Algorithm (DSA) and Elliptic Curve Digital Signature
-              Algorithm (ECDSA)", RFC 6979, DOI 10.17487/RFC6979, August
-              2013, <https://www.rfc-editor.org/info/rfc6979>.
 
    [SEC1]     Standards for Efficient Cryptography Group, "SEC 1:
               Elliptic Curve Cryptography", May 2009,
